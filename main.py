@@ -23,8 +23,12 @@ def maj_calculatrice(touche):
         st.session_state.calc_expr += str(touche)
 
 # --- INITIALISATION DE LA MÉMOIRE GLOBALE ---
+# Tentative de récupération de la clé via le coffre-fort sécurisé de Streamlit
 if 'api_key' not in st.session_state:
-    st.session_state.api_key = ""
+    try:
+        st.session_state.api_key = st.secrets["GEMINI_API_KEY"]
+    except:
+        st.session_state.api_key = ""
 
 if 'lecon' not in st.session_state: st.session_state.lecon = ""
 if 'questions' not in st.session_state: st.session_state.questions = []
@@ -50,6 +54,10 @@ with st.sidebar:
         st.success("✅ Leçon en mémoire")
     else:
         st.error("❌ Aucune leçon")
+    
+    # Petit indicateur visuel pour savoir si l'API est chargée
+    if not st.session_state.api_key:
+        st.error("⚠️ Clé API manquante")
 
 # ==========================================
 # MENU 1 : LEÇON
@@ -72,16 +80,19 @@ if menu == "📖 Leçon":
                 st.image(img, caption=f"Image {i+1}", use_container_width=True)
                 
         if st.button("🪄 Extraire le texte des images avec l'IA"):
-            with st.spinner("L'IA déchiffre tes notes et organise le texte..."):
-                try:
-                    client = genai.Client(api_key=st.session_state.api_key)
-                    prompt_ocr = "Voici une ou plusieurs photos d'une leçon. Transcris tout le texte de manière claire et structurée. S'il y a plusieurs pages, analyse le contenu pour les remettre dans le bon ordre logique. Ignore les ratures."
-                    contenus = [prompt_ocr] + images_ouvertes
-                    reponse_ocr = client.models.generate_content(model='gemini-2.5-flash', contents=contenus)
-                    st.session_state.lecon = reponse_ocr.text
-                    st.success("Extraction réussie ! Vérifie le résultat ci-dessous.")
-                except Exception as e:
-                    st.error(f"Erreur lors de l'extraction : {e}")
+            if not st.session_state.api_key:
+                st.error("⚠️ Renseigne ta clé API dans les paramètres d'abord !")
+            else:
+                with st.spinner("L'IA déchiffre tes notes et organise le texte..."):
+                    try:
+                        client = genai.Client(api_key=st.session_state.api_key)
+                        prompt_ocr = "Voici une ou plusieurs photos d'une leçon. Transcris tout le texte de manière claire et structurée. S'il y a plusieurs pages, analyse le contenu pour les remettre dans le bon ordre logique. Ignore les ratures."
+                        contenus = [prompt_ocr] + images_ouvertes
+                        reponse_ocr = client.models.generate_content(model='gemini-2.5-flash', contents=contenus)
+                        st.session_state.lecon = reponse_ocr.text
+                        st.success("Extraction réussie ! Vérifie le résultat ci-dessous.")
+                    except Exception as e:
+                        st.error(f"Erreur lors de l'extraction : {e}")
 
     st.write("---")
     lecon_temp = st.text_area("Texte de la leçon :", value=st.session_state.lecon, height=300)
@@ -103,6 +114,8 @@ elif menu == "🧠 Exercices":
     
     if not st.session_state.lecon:
         st.warning("⚠️ Tu dois d'abord ajouter une leçon dans le menu '📖 Leçon' avant de générer des exercices.")
+    elif not st.session_state.api_key:
+        st.error("⚠️ Clé API manquante. Va dans le menu Paramètres.")
     else:
         if not st.session_state.questions:
             st.write("### Configuration de l'exercice")
@@ -312,18 +325,24 @@ elif menu == "🧠 Exercices":
 # ==========================================
 elif menu == "📝 Fiches de révisions":
     st.title("📝 Générateur de Fiches")
+    
     if not st.session_state.lecon:
         st.warning("⚠️ Tu dois d'abord ajouter une leçon dans le menu '📖 Leçon'.")
+    elif not st.session_state.api_key:
+        st.error("⚠️ Clé API manquante. Va dans le menu Paramètres.")
     else:
         type_fiche = st.radio("Quel type de document souhaites-tu ?", ["Un résumé rapide (synthèse globale)", "Une fiche détaillée avec des points clés"])
+        
         if st.button("🪄 Générer ma fiche de révision"):
             with st.spinner("L'IA rédige ta fiche..."):
                 try:
                     client = genai.Client(api_key=st.session_state.api_key)
                     prompt_fiche = f"""Tu es un professeur expert. À partir de la leçon ci-dessous, crée une fiche de révision sous forme de '{type_fiche}'.
                     Structure bien le texte avec des titres, des points clés et mets en gras les concepts importants. Ne génère pas de JSON, réponds en format texte normal.
+                    
                     Leçon :
                     {st.session_state.lecon}"""
+                    
                     reponse_fiche = client.models.generate_content(model='gemini-2.5-flash', contents=prompt_fiche)
                     st.session_state.fiche_revision = reponse_fiche.text
                 except Exception as e:
@@ -338,7 +357,10 @@ elif menu == "📝 Fiches de révisions":
 # ==========================================
 elif menu == "⚙️ Paramètres":
     st.title("⚙️ Paramètres du logiciel")
-    nouvelle_cle = st.text_input("Ta clé API Google Gemini :", value=st.session_state.api_key, type="password")
+    st.write("L'application tente de charger la clé API automatiquement depuis ses fichiers sécurisés.")
+    
+    nouvelle_cle = st.text_input("Ta clé API Google Gemini (laisse tel quel si déjà configuré) :", value=st.session_state.api_key, type="password")
+    
     if st.button("Sauvegarder les paramètres"):
         st.session_state.api_key = nouvelle_cle
-        st.success("✅ Nouvelle clé API enregistrée avec succès !")
+        st.success("✅ Paramètres enregistrés avec succès !")
