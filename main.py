@@ -6,12 +6,9 @@ import io
 import contextlib
 
 # --- INITIALISATION DE LA MÉMOIRE GLOBALE ---
-# IMPORTANT : Plus de clé en clair ici pour éviter le blocage par Google !
+# Pas de clé dans le code ! L'utilisateur la rentre dans les paramètres.
 if 'api_key' not in st.session_state:
-    try:
-        st.session_state.api_key = st.secrets["GEMINI_API_KEY"]
-    except:
-        st.session_state.api_key = ""
+    st.session_state.api_key = ""
 
 if 'lecon' not in st.session_state: st.session_state.lecon = ""
 if 'questions' not in st.session_state: st.session_state.questions = []
@@ -108,16 +105,15 @@ if menu == t["menu_lecon"]:
             with cols[i % 3]: st.image(img, use_container_width=True)
                 
         if st.button(t["btn_extraire"]):
-            if not st.session_state.api_key: st.error("Clé API manquante !")
+            if not st.session_state.api_key: st.error("Clé API manquante ! Renseigne-la dans le menu Paramètres.")
             else:
                 with st.spinner("..."):
                     try:
                         client = genai.Client(api_key=st.session_state.api_key)
                         rep = client.models.generate_content(model='gemini-2.5-flash', contents=["Transcris ce texte."] + images_ouvertes)
                         st.session_state.lecon = rep.text
-                    except: st.error("Erreur d'extraction.")
+                    except: st.error("Erreur lors de l'extraction. Vérifie ta clé API.")
 
-    # CORRECTION : Le label vide qui polluait tes logs est corrigé ici
     lecon_temp = st.text_area("Texte de la leçon", value=st.session_state.lecon, height=300, label_visibility="collapsed")
     if st.button(t["btn_appliquer"]):
         st.session_state.lecon = lecon_temp
@@ -134,7 +130,7 @@ elif menu == t["menu_exo"]:
     with c2: st.button(t["aide_btn"], on_click=aller_aux_instructions, args=("Exercices",))
     
     if not st.session_state.lecon: st.warning(t["warn_lecon"])
-    elif not st.session_state.api_key: st.error("Clé API manquante dans les secrets.")
+    elif not st.session_state.api_key: st.error("Clé API manquante. Va dans les paramètres.")
     else:
         if not st.session_state.questions:
             st.write(t["config_exo"])
@@ -214,7 +210,7 @@ elif menu == t["menu_exo"]:
                         st.session_state.reponse_validee = False
                         st.session_state.calc_expr = ""
                         st.rerun()
-                        
+            
             # --- ÉCRAN DE FIN DE QUIZ ---
             else:
                 st.balloons()
@@ -243,6 +239,7 @@ elif menu == t["menu_fiches"]:
     with c1: st.title(t["titre_fiches"])
     with c2: st.button(t["aide_btn"], on_click=aller_aux_instructions, args=("Fiches",))
     if not st.session_state.lecon: st.warning(t["warn_lecon"])
+    elif not st.session_state.api_key: st.error("Clé API manquante. Va dans les paramètres.")
     else:
         type_fiche = st.radio(t["type_fiche"], ["Résumé", "Détaillée"])
         if st.button(t["btn_gen_fiche"]):
@@ -268,7 +265,8 @@ elif menu == t["menu_param"]:
     langue = st.selectbox("🌐 Langue / Language :", ["Français", "English"], index=0 if st.session_state.langue == "Français" else 1)
     theme = st.selectbox("🎨 Thème / Theme :", ["Classique", "Sombre", "Lumineux", "Dégradé Océan", "Dégradé Violet"], index=["Classique", "Sombre", "Lumineux", "Dégradé Océan", "Dégradé Violet"].index(st.session_state.theme))
     
-    # Remplacement sécurisé : l'utilisateur tape sa clé ici si les secrets ne marchent pas
+    st.write("---")
+    st.write("🔒 Colle ta nouvelle clé API ici pour faire fonctionner le logiciel :")
     nouvelle_cle = st.text_input("Clé API Google Gemini :", value=st.session_state.api_key, type="password")
     
     if st.button(t["save_param"]):
