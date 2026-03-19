@@ -114,9 +114,9 @@ if menu == t["menu_lecon"]:
                         client = genai.Client(api_key=st.session_state.api_key)
                         rep = client.models.generate_content(model='gemini-2.5-flash', contents=["Transcris ce texte."] + images_ouvertes)
                         st.session_state.lecon = rep.text
-                    except: st.error("Erreur.")
+                    except: st.error("Erreur lors de l'extraction. Vérifie ta clé API ou ta connexion.")
 
-    lecon_temp = st.text_area("", value=st.session_state.lecon, height=300)
+    lecon_temp = st.text_area("Texte de la leçon", value=st.session_state.lecon, height=300, label_visibility="collapsed")
     if st.button(t["btn_appliquer"]):
         st.session_state.lecon = lecon_temp
         st.session_state.questions = []
@@ -132,7 +132,7 @@ elif menu == t["menu_exo"]:
     with c2: st.button(t["aide_btn"], on_click=aller_aux_instructions, args=("Exercices",))
     
     if not st.session_state.lecon: st.warning(t["warn_lecon"])
-    elif not st.session_state.api_key: st.error("Clé API manquante dans les secrets.")
+    elif not st.session_state.api_key: st.error("Clé API manquante.")
     else:
         if not st.session_state.questions:
             st.write(t["config_exo"])
@@ -153,9 +153,8 @@ elif menu == t["menu_exo"]:
                         st.session_state.index_actuel = 0
                         st.session_state.score = 0
                         st.rerun()
-                    except: st.error("Erreur de génération.")
+                    except: st.error("Erreur de génération. L'IA n'a pas pu créer les questions.")
         else:
-            # --- CORRECTION : VÉRIFICATION DE LA FIN DE L'EXERCICE ---
             if st.session_state.index_actuel < len(st.session_state.questions):
                 q = st.session_state.questions[st.session_state.index_actuel]
                 st.subheader(f"Question {st.session_state.index_actuel + 1} / {len(st.session_state.questions)}")
@@ -213,7 +212,7 @@ elif menu == t["menu_exo"]:
                         st.session_state.reponse_validee = False
                         st.session_state.calc_expr = ""
                         st.rerun()
-            
+                        
             # --- ÉCRAN DE FIN DE QUIZ ---
             else:
                 st.balloons()
