@@ -81,7 +81,7 @@ if menu == "📖 Leçon":
                 
         if st.button("🪄 Extraire le texte des images avec l'IA"):
             if not st.session_state.api_key:
-                st.error("⚠️ Renseigne ta clé API dans les paramètres d'abord !")
+                st.error("⚠️ Clé API manquante dans les secrets du serveur !")
             else:
                 with st.spinner("L'IA déchiffre tes notes et organise le texte..."):
                     try:
@@ -115,7 +115,7 @@ elif menu == "🧠 Exercices":
     if not st.session_state.lecon:
         st.warning("⚠️ Tu dois d'abord ajouter une leçon dans le menu '📖 Leçon' avant de générer des exercices.")
     elif not st.session_state.api_key:
-        st.error("⚠️ Clé API manquante. Va dans le menu Paramètres.")
+        st.error("⚠️ Clé API manquante dans les secrets du serveur.")
     else:
         if not st.session_state.questions:
             st.write("### Configuration de l'exercice")
@@ -325,14 +325,12 @@ elif menu == "🧠 Exercices":
 # ==========================================
 elif menu == "📝 Fiches de révisions":
     st.title("📝 Générateur de Fiches")
-    
     if not st.session_state.lecon:
         st.warning("⚠️ Tu dois d'abord ajouter une leçon dans le menu '📖 Leçon'.")
     elif not st.session_state.api_key:
-        st.error("⚠️ Clé API manquante. Va dans le menu Paramètres.")
+        st.error("⚠️ Clé API manquante dans les secrets du serveur.")
     else:
         type_fiche = st.radio("Quel type de document souhaites-tu ?", ["Un résumé rapide (synthèse globale)", "Une fiche détaillée avec des points clés"])
-        
         if st.button("🪄 Générer ma fiche de révision"):
             with st.spinner("L'IA rédige ta fiche..."):
                 try:
@@ -342,7 +340,6 @@ elif menu == "📝 Fiches de révisions":
                     
                     Leçon :
                     {st.session_state.lecon}"""
-                    
                     reponse_fiche = client.models.generate_content(model='gemini-2.5-flash', contents=prompt_fiche)
                     st.session_state.fiche_revision = reponse_fiche.text
                 except Exception as e:
@@ -357,10 +354,4 @@ elif menu == "📝 Fiches de révisions":
 # ==========================================
 elif menu == "⚙️ Paramètres":
     st.title("⚙️ Paramètres du logiciel")
-    st.write("L'application tente de charger la clé API automatiquement depuis ses fichiers sécurisés.")
-    
-    nouvelle_cle = st.text_input("Ta clé API Google Gemini (laisse tel quel si déjà configuré) :", value=st.session_state.api_key, type="password")
-    
-    if st.button("Sauvegarder les paramètres"):
-        st.session_state.api_key = nouvelle_cle
-        st.success("✅ Paramètres enregistrés avec succès !")
+    st.success("🔒 L'application charge la clé API automatiquement depuis ses fichiers sécurisés. Aucune configuration manuelle n'est requise.")
