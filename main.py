@@ -27,7 +27,7 @@ def maj_calculatrice(touche):
 
 # --- INITIALISATION DE LA MÉMOIRE GLOBALE ---
 if 'api_key' not in st.session_state:
-    st.session_state.api_key = "AIzaSyDqDALd1r6v8nEbA4hnvnRJi_TPnEsc9cc"
+    st.session_state.api_key = "AIzaSyBqoS4n3TZR3DV6eBPr7eKJ_OMsFXNgG8k"
 if 'lecon' not in st.session_state:
     st.session_state.lecon = ""
 if 'questions' not in st.session_state:
