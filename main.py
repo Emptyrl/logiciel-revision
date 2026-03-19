@@ -112,11 +112,13 @@ if menu == t["menu_lecon"]:
                 with st.spinner("..."):
                     try:
                         client = genai.Client(api_key=st.session_state.api_key)
-                        rep = client.models.generate_content(model='gemini-2.5-flash', contents=["Transcris ce texte."] + images_ouvertes)
+                        # CORRECTION DU MODÈLE ICI
+                        rep = client.models.generate_content(model='gemini-2.0-flash', contents=["Transcris ce texte."] + images_ouvertes)
                         st.session_state.lecon = rep.text
-                    except: st.error("Erreur.")
+                    except: st.error("Erreur lors de l'extraction. Vérifie ta clé API ou ta connexion.")
 
-    lecon_temp = st.text_area("", value=st.session_state.lecon, height=300)
+    # CORRECTION DE L'ÉTIQUETTE VIDE ICI
+    lecon_temp = st.text_area("Texte de la leçon", value=st.session_state.lecon, height=300, label_visibility="collapsed")
     if st.button(t["btn_appliquer"]):
         st.session_state.lecon = lecon_temp
         st.session_state.questions = []
@@ -147,13 +149,14 @@ elif menu == t["menu_exo"]:
                         client = genai.Client(api_key=st.session_state.api_key)
                         fmt = """[{"question": "Q", "choix": ["A", "B", "C"], "reponse_correcte": "B", "explication": "Exp", "outil_recommande": "calculatrice"}]""" if type_question in ["QCM", "Vrai/Faux"] else """[{"question": "Q", "outil_recommande": "dictionnaire"}]"""
                         prompt = f"Crée {nb_questions} questions '{type_question}'. Format JSON strict: {fmt}. Leçon: {st.session_state.lecon}"
-                        rep = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+                        # CORRECTION DU MODÈLE ICI
+                        rep = client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
                         st.session_state.questions = json.loads(rep.text.replace("```json", "").replace("```", "").strip())
                         for q in st.session_state.questions: q['type_q'] = type_question
                         st.session_state.index_actuel = 0
                         st.session_state.score = 0
                         st.rerun()
-                    except: st.error("Erreur de génération.")
+                    except: st.error("Erreur de génération. L'IA n'a pas pu créer les questions.")
         else:
             q = st.session_state.questions[st.session_state.index_actuel]
             st.subheader(f"Question {st.session_state.index_actuel + 1} / {len(st.session_state.questions)}")
@@ -173,12 +176,14 @@ elif menu == t["menu_exo"]:
                             mot = st.text_input("Mot :", key=f"dic_{st.session_state.index_actuel}")
                             if st.button("Chercher"):
                                 client = genai.Client(api_key=st.session_state.api_key)
-                                st.info(client.models.generate_content(model='gemini-2.5-flash', contents=f"Définition de {mot}").text)
+                                # CORRECTION DU MODÈLE ICI
+                                st.info(client.models.generate_content(model='gemini-2.0-flash', contents=f"Définition de {mot}").text)
                         elif outil == 'python':
                             code = st.text_area("Code :", key=f"py_{st.session_state.index_actuel}")
                             if st.button("Run"):
                                 client = genai.Client(api_key=st.session_state.api_key)
-                                st.code(client.models.generate_content(model='gemini-2.5-flash', contents=f"Simule l'affichage de ce code Python:\n{code}").text)
+                                # CORRECTION DU MODÈLE ICI
+                                st.code(client.models.generate_content(model='gemini-2.0-flash', contents=f"Simule l'affichage de ce code Python:\n{code}").text)
 
             # REPONSE
             choix_u, texte_u = None, None
@@ -192,7 +197,8 @@ elif menu == t["menu_exo"]:
                         if q['type_q'] in ["Mise en situation", "Définitions"]:
                             client = genai.Client(api_key=st.session_state.api_key)
                             prompt_corr = f"""Évalue: "{texte_u}" pour "{q['question']}". JSON: {{"est_correct": true, "explication_correction": "Exp"}}"""
-                            st.session_state.evaluation_ia = json.loads(client.models.generate_content(model='gemini-2.5-flash', contents=prompt_corr).text.replace("```json", "").replace("```", "").strip())
+                            # CORRECTION DU MODÈLE ICI
+                            st.session_state.evaluation_ia = json.loads(client.models.generate_content(model='gemini-2.0-flash', contents=prompt_corr).text.replace("```json", "").replace("```", "").strip())
                         st.session_state.reponse_validee = True
                         st.rerun()
                 with c2:
@@ -224,7 +230,8 @@ elif menu == t["menu_fiches"]:
         type_fiche = st.radio(t["type_fiche"], ["Résumé", "Détaillée"])
         if st.button(t["btn_gen_fiche"]):
             client = genai.Client(api_key=st.session_state.api_key)
-            st.session_state.fiche_revision = client.models.generate_content(model='gemini-2.5-flash', contents=f"Fiche de type {type_fiche} sur: {st.session_state.lecon}").text
+            # CORRECTION DU MODÈLE ICI
+            st.session_state.fiche_revision = client.models.generate_content(model='gemini-2.0-flash', contents=f"Fiche de type {type_fiche} sur: {st.session_state.lecon}").text
         if st.session_state.fiche_revision: st.markdown(st.session_state.fiche_revision)
 
 # ==========================================
