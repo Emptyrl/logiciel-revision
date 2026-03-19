@@ -155,62 +155,84 @@ elif menu == t["menu_exo"]:
                         st.rerun()
                     except: st.error("Erreur de génération.")
         else:
-            q = st.session_state.questions[st.session_state.index_actuel]
-            st.subheader(f"Question {st.session_state.index_actuel + 1} / {len(st.session_state.questions)}")
-            st.write(f"**{q['question']}**")
-            
-            # OUTILS
-            if st.session_state.outils_actifs and q['type_q'] != "Définitions":
-                outil = q.get('outil_recommande', 'aucun').lower()
-                if outil in ['calculatrice', 'dictionnaire', 'python']:
-                    with st.expander(f"🛠️ {outil.capitalize()}"):
-                        if outil == 'calculatrice':
-                            st.text_input("Écran", value=st.session_state.calc_expr, disabled=True, label_visibility="collapsed")
-                            for row in [("7","8","9","/"), ("4","5","6","*"), ("1","2","3","-"), ("C","0","=","+")]:
-                                cols = st.columns(4)
-                                for i, btn in enumerate(row): cols[i].button(btn, on_click=maj_calculatrice, args=(btn,), key=f"btn_{btn}_{st.session_state.index_actuel}")
-                        elif outil == 'dictionnaire':
-                            mot = st.text_input("Mot :", key=f"dic_{st.session_state.index_actuel}")
-                            if st.button("Chercher"):
-                                client = genai.Client(api_key=st.session_state.api_key)
-                                st.info(client.models.generate_content(model='gemini-2.5-flash', contents=f"Définition de {mot}").text)
-                        elif outil == 'python':
-                            code = st.text_area("Code :", key=f"py_{st.session_state.index_actuel}")
-                            if st.button("Run"):
-                                client = genai.Client(api_key=st.session_state.api_key)
-                                st.code(client.models.generate_content(model='gemini-2.5-flash', contents=f"Simule l'affichage de ce code Python:\n{code}").text)
+            # --- CORRECTION : VÉRIFICATION DE LA FIN DE L'EXERCICE ---
+            if st.session_state.index_actuel < len(st.session_state.questions):
+                q = st.session_state.questions[st.session_state.index_actuel]
+                st.subheader(f"Question {st.session_state.index_actuel + 1} / {len(st.session_state.questions)}")
+                st.write(f"**{q['question']}**")
+                
+                # OUTILS
+                if st.session_state.outils_actifs and q['type_q'] != "Définitions":
+                    outil = q.get('outil_recommande', 'aucun').lower()
+                    if outil in ['calculatrice', 'dictionnaire', 'python']:
+                        with st.expander(f"🛠️ {outil.capitalize()}"):
+                            if outil == 'calculatrice':
+                                st.text_input("Écran", value=st.session_state.calc_expr, disabled=True, label_visibility="collapsed")
+                                for row in [("7","8","9","/"), ("4","5","6","*"), ("1","2","3","-"), ("C","0","=","+")]:
+                                    cols = st.columns(4)
+                                    for i, btn in enumerate(row): cols[i].button(btn, on_click=maj_calculatrice, args=(btn,), key=f"btn_{btn}_{st.session_state.index_actuel}")
+                            elif outil == 'dictionnaire':
+                                mot = st.text_input("Mot :", key=f"dic_{st.session_state.index_actuel}")
+                                if st.button("Chercher"):
+                                    client = genai.Client(api_key=st.session_state.api_key)
+                                    st.info(client.models.generate_content(model='gemini-2.5-flash', contents=f"Définition de {mot}").text)
+                            elif outil == 'python':
+                                code = st.text_area("Code :", key=f"py_{st.session_state.index_actuel}")
+                                if st.button("Run"):
+                                    client = genai.Client(api_key=st.session_state.api_key)
+                                    st.code(client.models.generate_content(model='gemini-2.5-flash', contents=f"Simule l'affichage de ce code Python:\n{code}").text)
 
-            # REPONSE
-            choix_u, texte_u = None, None
-            if q['type_q'] in ["QCM", "Vrai/Faux"]: choix_u = st.radio("Choix :", q.get('choix', ['Vrai', 'Faux']), index=None, disabled=st.session_state.reponse_validee)
-            else: texte_u = st.text_area("Réponse :", disabled=st.session_state.reponse_validee)
-            
-            if not st.session_state.reponse_validee:
-                c1, c2 = st.columns(2)
-                with c1:
-                    if st.button(t["valider"]):
-                        if q['type_q'] in ["Mise en situation", "Définitions"]:
-                            client = genai.Client(api_key=st.session_state.api_key)
-                            prompt_corr = f"""Évalue: "{texte_u}" pour "{q['question']}". JSON: {{"est_correct": true, "explication_correction": "Exp"}}"""
-                            st.session_state.evaluation_ia = json.loads(client.models.generate_content(model='gemini-2.5-flash', contents=prompt_corr).text.replace("```json", "").replace("```", "").strip())
-                        st.session_state.reponse_validee = True
-                        st.rerun()
-                with c2:
-                    if st.button(t["passer"]):
+                # REPONSE
+                choix_u, texte_u = None, None
+                if q['type_q'] in ["QCM", "Vrai/Faux"]: choix_u = st.radio("Choix :", q.get('choix', ['Vrai', 'Faux']), index=None, disabled=st.session_state.reponse_validee)
+                else: texte_u = st.text_area("Réponse :", disabled=st.session_state.reponse_validee)
+                
+                if not st.session_state.reponse_validee:
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button(t["valider"]):
+                            if q['type_q'] in ["Mise en situation", "Définitions"]:
+                                client = genai.Client(api_key=st.session_state.api_key)
+                                prompt_corr = f"""Évalue: "{texte_u}" pour "{q['question']}". JSON: {{"est_correct": true, "explication_correction": "Exp"}}"""
+                                st.session_state.evaluation_ia = json.loads(client.models.generate_content(model='gemini-2.5-flash', contents=prompt_corr).text.replace("```json", "").replace("```", "").strip())
+                            st.session_state.reponse_validee = True
+                            st.rerun()
+                    with c2:
+                        if st.button(t["passer"]):
+                            st.session_state.index_actuel += 1
+                            st.session_state.calc_expr = ""
+                            st.rerun()
+                else:
+                    est_correct = (choix_u == q.get('reponse_correcte')) if q['type_q'] in ["QCM", "Vrai/Faux"] else st.session_state.evaluation_ia.get('est_correct', False)
+                    if est_correct: st.success("🎉 Correct !")
+                    else: st.error("❌ Faux.")
+                    st.info(q.get('explication', '') if q['type_q'] in ["QCM", "Vrai/Faux"] else st.session_state.evaluation_ia.get('explication_correction', ''))
+                    
+                    if st.button(t["suivant"]):
                         st.session_state.index_actuel += 1
+                        st.session_state.reponse_validee = False
                         st.session_state.calc_expr = ""
                         st.rerun()
+            
+            # --- ÉCRAN DE FIN DE QUIZ ---
             else:
-                est_correct = (choix_u == q.get('reponse_correcte')) if q['type_q'] in ["QCM", "Vrai/Faux"] else st.session_state.evaluation_ia.get('est_correct', False)
-                if est_correct: st.success("🎉 Correct !")
-                else: st.error("❌ Faux.")
-                st.info(q.get('explication', '') if q['type_q'] in ["QCM", "Vrai/Faux"] else st.session_state.evaluation_ia.get('explication_correction', ''))
+                st.balloons()
+                st.write("---")
+                st.write(f"### 🏆 Exercice terminé ! Ton score final : {st.session_state.score} / {len(st.session_state.questions)}")
                 
-                if st.button(t["suivant"]):
-                    st.session_state.index_actuel += 1
-                    st.session_state.reponse_validee = False
-                    st.session_state.calc_expr = ""
-                    st.rerun()
+                col_fin1, col_fin2 = st.columns(2)
+                with col_fin1:
+                    if st.button("Refaire cet exercice"):
+                        st.session_state.index_actuel = 0
+                        st.session_state.score = 0
+                        st.session_state.reponse_validee = False
+                        st.session_state.evaluation_ia = None
+                        st.session_state.calc_expr = ""
+                        st.rerun()
+                with col_fin2:
+                    if st.button("Nouvel exercice"):
+                        st.session_state.questions = []
+                        st.rerun()
 
 # ==========================================
 # MENU 3 : FICHES
