@@ -23,7 +23,6 @@ def aller_aux_instructions(section):
     st.session_state.section_instruction = section
 
 # --- INITIALISATION DE LA MÉMOIRE GLOBALE ---
-# La clé API est lue uniquement depuis les secrets du serveur (sécurité maximale)
 if 'api_key' not in st.session_state:
     try:
         st.session_state.api_key = st.secrets["GEMINI_API_KEY"]
@@ -42,17 +41,21 @@ if 'calc_expr' not in st.session_state: st.session_state.calc_expr = ""
 if 'section_instruction' not in st.session_state: st.session_state.section_instruction = None
 
 if 'langue' not in st.session_state: st.session_state.langue = "Français"
-if 'theme' not in st.session_state: st.session_state.theme = "Lumineux"
+if 'theme' not in st.session_state: st.session_state.theme = "Discord Sombre"
 
-# --- GESTION DES THÈMES VISUELS (DOUX ET ÉPURÉS) ---
-if st.session_state.theme == "Dégradé Bleu Doux":
-    st.markdown("""<style>.stApp { background: linear-gradient(to bottom right, #e0eafc, #cfdef3); color: #1e1e1e; }</style>""", unsafe_allow_html=True)
-elif st.session_state.theme == "Dégradé Ciel Doux":
-    st.markdown("""<style>.stApp { background: linear-gradient(to bottom right, #fdfbfb, #ebedee); color: #1e1e1e; }</style>""", unsafe_allow_html=True)
-elif st.session_state.theme == "Sombre":
-    st.markdown("""<style>.stApp { background-color: #0e1117; color: white; }</style>""", unsafe_allow_html=True)
-elif st.session_state.theme == "Lumineux":
-    st.markdown("""<style>.stApp { background-color: #ffffff; color: black; }</style>""", unsafe_allow_html=True)
+# --- GESTION DES THÈMES VISUELS ---
+if st.session_state.theme == "Discord Sombre":
+    st.markdown("""<style>
+        .stApp { background-color: #313338; color: #dbdee1; }
+        h1, h2, h3, h4, h5, h6, p, span, label, div { color: #dbdee1 !important; }
+        [data-testid="stSidebar"] { background-color: #2b2d31; }
+    </style>""", unsafe_allow_html=True)
+elif st.session_state.theme == "Discord Lumineux":
+    st.markdown("""<style>
+        .stApp { background-color: #f2f3f5; color: #111214; }
+        h1, h2, h3, h4, h5, h6, p, span, label, div { color: #111214 !important; }
+        [data-testid="stSidebar"] { background-color: #ebedef; }
+    </style>""", unsafe_allow_html=True)
 
 # --- DICTIONNAIRE DE TRADUCTION ---
 if st.session_state.langue == "Français":
@@ -267,8 +270,8 @@ elif menu == t["menu_param"]:
     st.title(t["titre_param"])
     langue = st.selectbox("🌐 Langue / Language :", ["Français", "English"], index=0 if st.session_state.langue == "Français" else 1)
     
-    themes_disponibles = ["Sombre", "Lumineux", "Dégradé Bleu Doux", "Dégradé Ciel Doux"]
-    index_theme = themes_disponibles.index(st.session_state.theme) if st.session_state.theme in themes_disponibles else 1
+    themes_disponibles = ["Classique", "Discord Sombre", "Discord Lumineux"]
+    index_theme = themes_disponibles.index(st.session_state.theme) if st.session_state.theme in themes_disponibles else 0
     theme = st.selectbox("🎨 Thème / Theme :", themes_disponibles, index=index_theme)
     
     if st.button(t["save_param"]):
