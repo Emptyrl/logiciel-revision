@@ -184,34 +184,30 @@ elif menu == "🧠 Exercices":
                             
                             if outil == 'calculatrice':
                                 st.write("**Calculatrice**")
+                                # L'écran de la calculatrice
+                                st.text_input("Écran", value=st.session_state.calc_expr, disabled=True, key="ecran_calc", label_visibility="collapsed")
                                 
-                              # --- CALCULATRICE CORRIGÉE ---
-                if st.session_state.outils_actifs and q.get('outil_recommande') == 'calculatrice':
-                    with st.expander("🛠️ Ouvrir la Calculatrice"):
-                        # Affichage du texte de l'écran (Utilisation de st.info pour la visibilité)
-                        st.markdown(f"### ` {st.session_state.calc_expr if st.session_state.calc_expr else '0'} `")
-                        
-                        # Pavé numérique
-                        c1, c2, c3, c4 = st.columns(4)
-                        c1.button("7", on_click=maj_calculatrice, args=("7",))
-                        c2.button("8", on_click=maj_calculatrice, args=("8",))
-                        c3.button("9", on_click=maj_calculatrice, args=("9",))
-                        c4.button("÷", on_click=maj_calculatrice, args=("÷",))
-                        
-                        c1.button("4", on_click=maj_calculatrice, args=("4",))
-                        c2.button("5", on_click=maj_calculatrice, args=("5",))
-                        c3.button("6", on_click=maj_calculatrice, args=("6",))
-                        c4.button("×", on_click=maj_calculatrice, args=("×",))
-                        
-                        c1.button("1", on_click=maj_calculatrice, args=("1",))
-                        c2.button("2", on_click=maj_calculatrice, args=("2",))
-                        c3.button("3", on_click=maj_calculatrice, args=("3",))
-                        c4.button("-", on_click=maj_calculatrice, args=("-",))
-                        
-                        c1.button("C", on_click=maj_calculatrice, args=("C",))
-                        c2.button("0", on_click=maj_calculatrice, args=("0",))
-                        c3.button("=", on_click=maj_calculatrice, args=("=",))
-                        c4.button("+", on_click=maj_calculatrice, args=("+",))
+                                # Le clavier de la calculatrice
+                                c1, c2, c3, c4 = st.columns(4)
+                                c1.button("7", on_click=maj_calculatrice, args=("7",), use_container_width=True)
+                                c2.button("8", on_click=maj_calculatrice, args=("8",), use_container_width=True)
+                                c3.button("9", on_click=maj_calculatrice, args=("9",), use_container_width=True)
+                                c4.button("÷", on_click=maj_calculatrice, args=("/",), use_container_width=True)
+                                
+                                c1.button("4", on_click=maj_calculatrice, args=("4",), use_container_width=True)
+                                c2.button("5", on_click=maj_calculatrice, args=("5",), use_container_width=True)
+                                c3.button("6", on_click=maj_calculatrice, args=("6",), use_container_width=True)
+                                c4.button("×", on_click=maj_calculatrice, args=("*",), use_container_width=True)
+                                
+                                c1.button("1", on_click=maj_calculatrice, args=("1",), use_container_width=True)
+                                c2.button("2", on_click=maj_calculatrice, args=("2",), use_container_width=True)
+                                c3.button("3", on_click=maj_calculatrice, args=("3",), use_container_width=True)
+                                c4.button("-", on_click=maj_calculatrice, args=("-",), use_container_width=True)
+                                
+                                c1.button("C", on_click=maj_calculatrice, args=("C",), use_container_width=True)
+                                c2.button("0", on_click=maj_calculatrice, args=("0",), use_container_width=True)
+                                c3.button("=", on_click=maj_calculatrice, args=("=",), use_container_width=True)
+                                c4.button("+", on_click=maj_calculatrice, args=("+",), use_container_width=True)
                                         
                             elif outil == 'dictionnaire':
                                 mot = st.text_input("Quel mot veux-tu chercher ?", key=f"dico_{st.session_state.index_actuel}")
